@@ -13,6 +13,10 @@ The kit gives you:
 
 Work is routed by what it is, never by a guess at how hard it is. See `ROUTING.md`.
 
+Working model: one session, one task, one working copy. Task sessions start on Sonnet at `high`.
+Process or architecture talks start on Opus and stay short. Implementation after them goes to a
+new Sonnet session, not a model switch. Details are in `ROUTING.md`.
+
 ## Adopt it in a new project
 
 Start a new session in the project and send:
@@ -43,21 +47,21 @@ sequenceDiagram
     Note over Orch: Small edits stay in the orchestrator.<br/>No brief, no hand-off.
     opt Structural change only (data shape, routing, build or CI config, tokens)
         Orch->>Plan: goal and criteria
-        Plan-->>Orch: plan, steps with checks, risks
+        Plan-->>Orch: plan, steps with checks, risks<br/>(read-only: Orch records STATUS.md)
     end
-    Orch->>Orch: write BRIEF.md (once, gitignored)
+    Orch->>Orch: write BRIEF.md and STATUS.md (gitignored, one task)
     rect rgba(120, 140, 200, 0.15)
-        Note over Orch,Work: Worker box: reads BRIEF.md first, never edits it
+        Note over Orch,Work: Worker: reads BRIEF.md first, never edits it
         Orch->>Work: delegate by kind of work
-        Work->>Work: commits and STATUS.md after every step
+        Work->>Work: commits, STATUS.md after every step
         Work-->>Orch: report, questions
     end
     Orch->>Run: run check, build, tests
-    Run-->>Orch: pass or fail, counts, first error lines
+    Run-->>Orch: pass or fail, counts, first error lines<br/>(read-only: Orch records STATUS.md)
     Orch->>Orch: read diff, commit, open PR
     rect rgba(200, 140, 120, 0.15)
-        Note over Orch,Rev: Review in a context that did not write the code
-        Orch->>Rev: PR number and brief
+        Note over Orch,Rev: Review in a context that did not write the code.<br/>Codex lenses run on every pass except comment-only.<br/>/code-review only if Codex is missing or fails.
+        Orch->>Rev: PR number, BRIEF.md and STATUS.md paths
         Rev-->>Orch: findings by severity
     end
     loop Until no must-fix is open
@@ -66,9 +70,11 @@ sequenceDiagram
         Orch->>Rev: delta pass (trivial passes on Sonnet, high)
         Rev-->>Orch: findings by severity
     end
-    Orch->>Orch: merge (owner confirmed, CI green, review ready)
+    Note over Rev: Merge once the review passes and CI is green,<br/>by the step the project assigns
+    Rev-->>Orch: verdict, merged or not
+    Note over Orch: Final step: delete BRIEF.md and STATUS.md<br/>(PR merged, PR closed, or no PR)
     Orch->>Owner: summary, open questions
-    Note over Orch,Work: Quota out: another account reads<br/>BRIEF.md and STATUS.md and continues.
+    Note over Orch,Work: Quota out: another account reads<br/>BRIEF.md and STATUS.md and continues, no rewrite.
 ```
 
 <img src="diagram/routing.svg" alt="Sequence diagram of the routing flow from owner to orchestrator, planner, worker, runner, reviewer, fix loop and merge" width="100%">
@@ -77,7 +83,7 @@ sequenceDiagram
 
 | Work                                                                                      | Worker                                 | Model, effort      |
 | ----------------------------------------------------------------------------------------- | -------------------------------------- | ------------------ |
-| Dialog, criteria, brief, small edits, commits, merge                                      | the main session (orchestrator)        | Sonnet, high       |
+| Dialog, criteria, brief, status, small edits, commits                                     | the main session (orchestrator)        | Sonnet, high       |
 | A plan for a structural change: data shape, routing, build or CI config, design tokens    | `planner` agent, read-only             | Opus, xhigh        |
 | Work that depends on taste: visual, copy, UX                                              | `crafter` agent                        | Sonnet, xhigh      |
 | Code with no taste in it: tests, data, scripts, accessibility, performance, an exact plan | Codex, `workspace-write`               | gpt-6.1-sol, xhigh |
@@ -85,20 +91,21 @@ sequenceDiagram
 | Review when the change touches a high-risk path                                           | `reviewer` agent, `effort: xhigh`      | Opus, xhigh        |
 | Review, trivial re-pass or comment-only pass                                              | general-purpose agent, `model: sonnet` | Sonnet, high       |
 | Fix loop and QA after review                                                              | general-purpose agent, `model: sonnet` | Sonnet, high       |
-| Review lenses (bug hunt, second opinion) and objective audits                             | Codex, `read-only`                     | gpt-6.1-sol, xhigh |
+| Review lenses (bug hunt, second opinion), every pass but comment-only; objective audits   | Codex, `read-only`                     | gpt-6.1-sol, xhigh |
+| Merge, once the review passes and CI is green                                             | the step the project assigns           | the step's own     |
 | Run check, build and test commands; search; count; summarise long output                  | `runner` agent, read-only              | Haiku, high        |
 
 ## Files
 
-| Path                            | Purpose                                                      |
-| ------------------------------- | ------------------------------------------------------------ |
-| `ADOPT.md`                      | Steps for an agent adapting the kit to a project             |
-| `ROUTING.md`                    | Principles, role table, rules, Codex command, hand-off files |
-| `templates/settings.json`       | Project `model` and `effortLevel`                            |
-| `templates/BRIEF.md`            | Skeleton the orchestrator fills once per task                |
-| `templates/STATUS.md`           | Skeleton the worker updates after every step                 |
-| `templates/agents/*.md`         | Planner, crafter, reviewer and runner with placeholders      |
-| `diagram/routing.{mmd,svg,png}` | The flow diagram, source and renders                         |
+| Path                            | Purpose                                                        |
+| ------------------------------- | -------------------------------------------------------------- |
+| `ADOPT.md`                      | Steps for an agent adapting the kit to a project               |
+| `ROUTING.md`                    | Principles, role table, rules, Codex command, hand-off files   |
+| `templates/settings.json`       | Project `model` and `effortLevel`                              |
+| `templates/BRIEF.md`            | Skeleton the orchestrator fills once per task, then deletes    |
+| `templates/STATUS.md`           | Skeleton updated after every step, then deleted with the brief |
+| `templates/agents/*.md`         | Planner, crafter, reviewer and runner with placeholders        |
+| `diagram/routing.{mmd,svg,png}` | The flow diagram, source and renders                           |
 
 ## Worked example
 

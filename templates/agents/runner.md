@@ -14,3 +14,6 @@ repository already runs, use another port: <how to set the port>. Stop any serve
 its PID.
 
 For a search or a count, report the answer with file:line evidence.
+
+You cannot write `STATUS.md`. Your reply is the progress record, and the orchestrator copies it
+there.

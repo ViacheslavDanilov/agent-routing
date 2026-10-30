@@ -1,8 +1,14 @@
 # Status: <task name>
 
-<!-- Updated by the worker after every step. Gitignored, never committed.
+<!-- Belongs to ONE task. Written when the owner confirms the criteria, updated after every step.
+     Gitignored, never committed.
+     A worker with write access updates it. A read-only worker (planner, runner, read-only Codex)
+     reports progress in its reply, and the orchestrator records it here.
      Read BRIEF.md first. Never edit it.
-     A new session on another account reads both files and continues from "Next". -->
+     A new session on the same task, on any account, reads both files and continues from "Next".
+     It does not rewrite them.
+     A worker in another worktree does not see this file: the caller passes its absolute path.
+     DELETE it, with BRIEF.md, when the task ends: PR merged, PR closed, or no PR. -->
 
 Last updated: <date, time>
 Worker: <Codex | Crafter | orchestrator | other>

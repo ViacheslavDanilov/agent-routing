@@ -16,26 +16,26 @@ sequenceDiagram
 
     opt Structural change only (data shape, routing, build or CI config, tokens)
         Orch->>Plan: goal and criteria
-        Plan-->>Orch: plan, steps with checks, risks
+        Plan-->>Orch: plan, steps with checks, risks<br/>(read-only: Orch records STATUS.md)
     end
 
-    Orch->>Orch: write BRIEF.md (once, gitignored)
+    Orch->>Orch: write BRIEF.md and STATUS.md (gitignored, one task)
 
     rect rgba(120, 140, 200, 0.15)
-        Note over Orch,Work: Worker box: reads BRIEF.md first, never edits it
+        Note over Orch,Work: Worker: reads BRIEF.md first, never edits it
         Orch->>Work: delegate by kind of work
-        Work->>Work: commits and STATUS.md after every step
+        Work->>Work: commits, STATUS.md after every step
         Work-->>Orch: report, questions
     end
 
     Orch->>Run: run check, build, tests
-    Run-->>Orch: pass or fail, counts, first error lines
+    Run-->>Orch: pass or fail, counts, first error lines<br/>(read-only: Orch records STATUS.md)
 
     Orch->>Orch: read diff, commit, open PR
 
     rect rgba(200, 140, 120, 0.15)
-        Note over Orch,Rev: Review in a context that did not write the code
-        Orch->>Rev: PR number and brief
+        Note over Orch,Rev: Review in a context that did not write the code.<br/>Codex lenses run on every pass except comment-only.<br/>/code-review only if Codex is missing or fails.
+        Orch->>Rev: PR number, BRIEF.md and STATUS.md paths
         Rev-->>Orch: findings by severity
     end
 
@@ -46,7 +46,9 @@ sequenceDiagram
         Rev-->>Orch: findings by severity
     end
 
-    Orch->>Orch: merge (owner confirmed, CI green, review ready)
+    Note over Rev: Merge once the review passes and CI is green,<br/>by the step the project assigns
+    Rev-->>Orch: verdict, merged or not
+    Note over Orch: Final step: delete BRIEF.md and STATUS.md<br/>(PR merged, PR closed, or no PR)
     Orch->>Owner: summary, open questions
 
-    Note over Orch,Work: Quota out: another account reads<br/>BRIEF.md and STATUS.md and continues.
+    Note over Orch,Work: Quota out: another account reads<br/>BRIEF.md and STATUS.md and continues, no rewrite.

@@ -7,7 +7,7 @@ Rules for the whole task:
 
 - Do not change the user's global settings (`~/.claude/`, `~/.codex/`). Read them, never write.
 - Do not edit the kit directory. Copy from it.
-- Write nothing in the project until step 6 is confirmed by the owner.
+- Write nothing in the project until step 7 is confirmed by the owner.
 - Never use an em dash in anything you write. Keep sentences short and plain.
 
 ## 1. Inspect the project
@@ -20,7 +20,8 @@ Find and note:
 - CI: where it is defined, and which commands it runs.
 - Existing agent docs: `AGENTS.md`, `CLAUDE.md`, a conventions file, `.claude/skills/`,
   `.claude/agents/`, `.claude/settings.json`. Note what already exists. Do not duplicate it.
-- Git conventions: branch rules, commit format, pull request format, who may merge.
+- Git conventions: branch rules, commit format, pull request format, and which step merges (after
+  the review passes and CI is green). Do not assume the orchestrator merges.
 
 ## 2. Check the tools
 
@@ -30,7 +31,14 @@ Find and note:
   the configured model in the command template. The kit assumes `gpt-6.1-sol` at `xhigh`.
 - Run `echo $CLAUDE_CODE_EFFORT_LEVEL`. If it is set, tell the owner it overrides agent effort.
 
-## 3. Map the project's work onto the roles
+## 3. Check the authorship rules
+
+Read the project's rules for commit messages and pull request text. Some projects forbid naming AI
+tools or models there. If so, every commit and pull request that sets up routing must describe it
+neutrally, for example "model tiers" and "a second vendor". The config files themselves keep the
+real model names. Keep the rule in mind for step 8 and for any commit you make.
+
+## 4. Map the project's work onto the roles
 
 For each row of the role table in `ROUTING.md`, name what it means here. Examples of questions:
 
@@ -45,14 +53,14 @@ For each row of the role table in `ROUTING.md`, name what it means here. Example
 
 Keep the two effort levels and the models from the kit unless the owner says otherwise.
 
-## 4. Decide the high-risk paths
+## 5. Decide the high-risk paths
 
 List the paths where a missed bug is expensive: auth, payments, data migrations, build and CI
 config, secrets handling, public API, infrastructure. Use real paths or globs from the project.
 These paths send a review to Opus at `xhigh`. Propose the list. Do not invent paths that do not
 exist.
 
-## 5. Draft the files
+## 6. Draft the files
 
 Draft in your head or in the scratchpad, not in the project:
 
@@ -66,10 +74,27 @@ Draft in your head or in the scratchpad, not in the project:
   `AGENTS.md` or its conventions file. Never create `CLAUDE.md` if the project uses `AGENTS.md`.
   The section holds the adapted role table, the rules, the Codex command with the project's
   worktree, and the "Brief and status" protocol. Link to nothing in the kit directory: the project
-  copy must stand alone.
+  copy must stand alone. The rules it carries:
+  - The review lenses (bug hunt, second opinion) run on every pass except a comment-only pass.
+    `/code-review` is the fallback only when Codex is missing or fails.
+  - The merge happens after the review passes and CI is green, done by the one step the project
+    assigns. Name that step. Never write "the orchestrator merges" unless the project says so.
+  - `BRIEF.md` and `STATUS.md` belong to one task. Both are written when the owner confirms the
+    criteria. `BRIEF.md` is written once and never edited by a worker. `STATUS.md` is updated
+    after every step. A new session on the same task reads both and continues.
+  - A read-only worker (planner, runner, read-only Codex) reports progress in its reply, and the
+    orchestrator records it in `STATUS.md`.
+  - A worker in another worktree, such as the reviewer's, does not see the gitignored files. The
+    caller passes both by absolute path.
+  - Final step: delete `BRIEF.md` and `STATUS.md` when the task ends (pull request merged or
+    closed, or no pull request), so the next session never picks up a finished task.
+  - One session, one task, one working copy. If `BRIEF.md` for another unfinished task is
+    present, finish or close that task first.
+  - Task sessions start on Sonnet at `high`. Process or architecture talks start on Opus and stay
+    short. Implementation after them goes to a new Sonnet session.
 - `.gitignore` entries: `BRIEF.md` and `STATUS.md`. Do not duplicate existing lines.
 
-## 6. Ask the owner, then wait
+## 7. Ask the owner, then wait
 
 Show the owner, in one message:
 
@@ -82,11 +107,11 @@ Show the owner, in one message:
 Then stop. Do not write a file until the owner confirms in plain words. If the owner changes a
 row, redraw the table and ask again.
 
-## 7. Write and verify
+## 8. Write and verify
 
 After confirmation:
 
-1. Write the files from step 5.
+1. Write the files from step 6.
 2. Run the project's check command. It must pass.
 3. Check that agent frontmatter is valid: `name`, `description`, `model`, `effort`, and
    `disallowedTools` where the template has it.
@@ -94,10 +119,12 @@ After confirmation:
 5. Check `git status` shows `BRIEF.md` and `STATUS.md` ignored, and nothing outside the planned
    list changed.
 6. Do not commit unless the project's rules and the owner say so. Follow the project's own
-   commit and branch rules if you do.
+   commit and branch rules if you do, and the authorship rule from step 3: neutral wording, no AI
+   tool or model vendor named in a commit message or pull request text.
 
-## 8. Report
+## 9. Report
 
 Tell the owner, in under 150 words: the files created or changed, what the check printed, what
 you dropped or assumed, and one line on how to start: one task per session, and the orchestrator
-writes `BRIEF.md` before it hands work to another model.
+writes `BRIEF.md` and `STATUS.md` before it hands work to another model, and deletes both when the
+task ends.
