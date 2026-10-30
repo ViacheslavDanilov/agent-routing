@@ -1,0 +1,52 @@
+sequenceDiagram
+    autonumber
+    actor Owner
+    participant Orch as Orchestrator<br/>main session<br/>Sonnet, high
+    participant Plan as Planner<br/>Opus, xhigh<br/>read-only
+    participant Work as Worker<br/>Codex gpt-6.1-sol, xhigh (no taste)<br/>or Crafter Sonnet, xhigh (taste)
+    participant Run as Runner<br/>Haiku, high<br/>read-only
+    participant Rev as Reviewer<br/>Opus, high (xhigh on risky paths)<br/>+ Codex lenses, xhigh
+    participant Fix as Fix loop and QA<br/>Sonnet, high
+
+    Owner->>Orch: task, decisions
+    Orch->>Owner: questions, acceptance criteria
+    Owner-->>Orch: criteria confirmed
+
+    Note over Orch: Small edits stay in the orchestrator.<br/>No brief, no hand-off.
+
+    opt Structural change only (data shape, routing, build or CI config, tokens)
+        Orch->>Plan: goal and criteria
+        Plan-->>Orch: plan, steps with checks, risks
+    end
+
+    Orch->>Orch: write BRIEF.md (once, gitignored)
+
+    rect rgba(120, 140, 200, 0.15)
+        Note over Orch,Work: Worker box: reads BRIEF.md first, never edits it
+        Orch->>Work: delegate by kind of work
+        Work->>Work: commits and STATUS.md after every step
+        Work-->>Orch: report, questions
+    end
+
+    Orch->>Run: run check, build, tests
+    Run-->>Orch: pass or fail, counts, first error lines
+
+    Orch->>Orch: read diff, commit, open PR
+
+    rect rgba(200, 140, 120, 0.15)
+        Note over Orch,Rev: Review in a context that did not write the code
+        Orch->>Rev: PR number and brief
+        Rev-->>Orch: findings by severity
+    end
+
+    loop Until no must-fix is open
+        Orch->>Fix: fix findings, one commit per fix
+        Fix-->>Orch: fixes pushed
+        Orch->>Rev: delta pass (trivial passes on Sonnet, high)
+        Rev-->>Orch: findings by severity
+    end
+
+    Orch->>Orch: merge (owner confirmed, CI green, review ready)
+    Orch->>Owner: summary, open questions
+
+    Note over Orch,Work: Quota out: another account reads<br/>BRIEF.md and STATUS.md and continues.
