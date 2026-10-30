@@ -124,3 +124,7 @@ A project-specific instance of this kit lives in `/Users/viacheslav/projects/per
   and paths first, then update the templates and `ROUTING.md`.
 - When the kit improves, existing projects do not change on their own. Ask a session to compare the
   project copy with the kit and propose the differences.
+
+## GitHub settings
+
+- [`GITHUB-SETTINGS.md`](GITHUB-SETTINGS.md): the GitHub repository standard (merging, protection, Actions, labels) and `scripts/apply-github-standard.sh`, which applies it to a repository
