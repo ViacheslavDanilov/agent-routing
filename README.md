@@ -16,10 +16,14 @@ the working model (one session, one task) are in `ROUTING.md`.
 
 ## Adopt it in a new project
 
-Start a new session in the project and send:
+Clone the kit anywhere, then start a new session in the project and send the path to `ADOPT.md`:
+
+```bash
+gh repo clone ViacheslavDanilov/agent-routing <kit-dir>
+```
 
 ```text
-Read /Users/viacheslav/projects/personal/agent-routing/ADOPT.md and adapt the routing to this project
+Read <kit-dir>/ADOPT.md and adapt the routing to this project
 ```
 
 The agent inspects the project, shows an adapted table, and waits for your confirmation before it
@@ -91,7 +95,7 @@ sequenceDiagram
 
 ## Worked example
 
-A project-specific instance of this kit lives in `/Users/viacheslav/projects/personal/vdanilov`
+A project-specific instance of this kit lives in the `ViacheslavDanilov/vdanilov` repository
 (a Next.js portfolio site):
 
 - `.agents/skills/shared/site-conventions.md`, sections "Model routing" and "Brief and status"
