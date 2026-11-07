@@ -1,6 +1,6 @@
 # Routing
 
-How work is split across models. This file is generic. A project keeps its own adapted copy.
+How work is split across Claude models. This file is generic. A project keeps its own adapted copy.
 
 ## Principles
 
@@ -15,20 +15,20 @@ How work is split across models. This file is generic. A project keeps its own a
 
 ## Roles
 
-| Work                                                                                      | Worker                                 | Model, effort      | Why                                                    |
-| ----------------------------------------------------------------------------------------- | -------------------------------------- | ------------------ | ------------------------------------------------------ |
-| Dialog, criteria, brief, status, small edits, commits                                     | the main session (orchestrator)        | Sonnet, high       | Needs the owner's context and runs all the time        |
-| A plan for a structural change: data shape, routing, build or CI config, design tokens    | `planner` agent, read-only             | Opus, xhigh        | A wrong structure is costly to undo                    |
-| Work that depends on taste: visual, copy, UX                                              | `crafter` agent                        | Sonnet, xhigh      | Taste needs care, and Claude holds the project's voice |
-| Code with no taste in it: tests, data, scripts, accessibility, performance, an exact plan | Codex, `workspace-write`               | gpt-6.1-sol, xhigh | Has a check that passes or fails, and a second vendor  |
-| Review, first pass or delta                                                               | `reviewer` agent                       | Opus, high         | A context that did not write the code                  |
-| Review when the change touches a high-risk path                                           | `reviewer` agent, `effort: xhigh`      | Opus, xhigh        | A miss on a risky path is expensive                    |
-| Review, trivial re-pass or comment-only pass                                              | general-purpose agent, `model: sonnet` | Sonnet, high       | Little to find, so the cheaper model is enough         |
-| Fix loop and QA after review                                                              | general-purpose agent, `model: sonnet` | Sonnet, high       | Follows concrete findings                              |
-| Review lenses: bug hunt and second opinion, on every pass except comment-only             | Codex, `read-only`                     | gpt-6.1-sol, xhigh | A different model finds different bugs                 |
-| Merge, once the review passes and CI is green                                             | the step the project assigns (below)   | the step's own     | Who merges is project-specific                         |
-| Objective audits: accessibility, performance, security scans                              | Codex, `read-only`                     | gpt-6.1-sol, xhigh | The result is measurable                               |
-| Run check, build and test commands; search; count; summarise long output                  | `runner` agent, read-only              | Haiku, high        | Cheap, and keeps long output out of the session        |
+| Work                                                                                      | Worker                                            | Model, effort  | Why                                                    |
+| ----------------------------------------------------------------------------------------- | ------------------------------------------------- | -------------- | ------------------------------------------------------ |
+| Dialog, criteria, brief, status, small edits, commits                                     | the main session (orchestrator)                   | Sonnet, high   | Needs the owner's context and runs all the time        |
+| A plan for a structural change: data shape, routing, build or CI config, design tokens    | `planner` agent, read-only                        | Opus, xhigh    | A wrong structure is costly to undo                    |
+| Work that depends on taste: visual, copy, UX                                              | `crafter` agent                                   | Sonnet, xhigh  | Taste needs care, and Claude holds the project's voice |
+| Code with no taste in it: tests, data, scripts, accessibility, performance, an exact plan | the main session (orchestrator)                   | Sonnet, high   | Has a check that passes or fails                       |
+| Review, first pass or delta                                                               | `reviewer` agent                                  | Opus, high     | A context that did not write the code                  |
+| Review when the change touches a high-risk path                                           | `reviewer` agent, `effort: xhigh`                 | Opus, xhigh    | A miss on a risky path is expensive                    |
+| Review, trivial re-pass or comment-only pass                                              | general-purpose agent, `model: sonnet`            | Sonnet, high   | Little to find, so the cheaper model is enough         |
+| Fix loop and QA after review                                                              | general-purpose agent, `model: sonnet`            | Sonnet, high   | Follows concrete findings                              |
+| Review lens: bug hunt (`/code-review`), on every pass except comment-only                 | general-purpose agent, `model: sonnet`, read-only | Sonnet, xhigh  | A missed bug costs more than the lens                  |
+| Merge, once the review passes and CI is green                                             | the step the project assigns (below)              | the step's own | Who merges is project-specific                         |
+| Objective audits: accessibility, performance, security scans                              | general-purpose agent, `model: sonnet`, read-only | Sonnet, high   | The result is measurable                               |
+| Run check, build and test commands; search; count; summarise long output                  | `runner` agent, read-only                         | Haiku, high    | Cheap, and keeps long output out of the session        |
 
 The owner can override any row: `/model opus` in a session, or a word in chat.
 
@@ -36,41 +36,22 @@ Who merges is project-specific. The merge happens after the review passes and CI
 the project assigns it to one step. In the worked example the review step merges, never the
 orchestrator's own session. Write the project's choice into its copy of this table.
 
-The bug-hunt and second-opinion lenses run on every review pass except a comment-only pass, not
-only on high-risk changes. `/code-review` is the bug-hunt fallback, used only when Codex is
-missing or fails.
+The bug-hunt lens runs on every review pass except a comment-only pass, not only on high-risk
+changes.
 
 ## Rules
 
 - **A small edit stays in the orchestrator.** Handing a one-line change to another model costs
-  more than making it. A brief is for larger work, work for another model, or work that may
+  more than making it. A brief is for larger work, work for another worker, or work that may
   outlive the session.
-- **Codex never decides how something looks or reads.** It gets work with a check that passes or
-  fails. Visual and copy work stays with Claude.
-- **Codex never commits.** The orchestrator reads its diff, runs the checks and commits.
-- **If Codex is missing or fails**, say so and route the work to the Claude equivalent: code to
-  the orchestrator, the bug lens to `/code-review`, and record the second opinion as not run.
 - **Review runs in a context that did not write the code.** Use a fresh subagent or a new session.
 - **Every delegated prompt repeats the limits** in the prompt text: read-only unless the step owns
   the edits, never push, never upgrade tools, never edit the agent docs unless the task is that.
   A skill's own preamble does not know the project's rules.
-- **Read-only workers cannot write `STATUS.md`.** The planner, the runner and a read-only Codex
-  run report progress in their reply. The orchestrator records it in `STATUS.md`.
-- **Hand-off files.** Codex and Claude cannot see each other's conversations, and a quota limit or
+- **Read-only workers cannot write `STATUS.md`.** The planner, the runner and the read-only
+  workers report progress in their reply. The orchestrator records it in `STATUS.md`.
+- **Hand-off files.** A worker cannot see the orchestrator's conversation, and a quota limit or
   an account switch can end a session. See "Brief and status" below.
-
-## Codex command
-
-Run Codex from the working tree, with the report written to a file:
-
-```bash
-codex exec -m gpt-6.1-sol -c model_reasoning_effort=xhigh -s read-only -C <worktree> \
-  -o <report.md> "<prompt>"
-```
-
-Use `-s workspace-write` instead of `read-only` when Codex implements. The prompt carries the
-limits above and points at `BRIEF.md`. A read-only run cannot write `STATUS.md`, so its report
-is the progress record. Check that `codex --version` works first.
 
 ## Brief and status
 
@@ -104,8 +85,7 @@ One session, one task, one working copy. There are no parallel tasks in the same
 per-task worktrees. If `BRIEF.md` for another unfinished task is present, finish or close that
 task first.
 
-Per-task worktrees were rejected for now because each worktree needs its own dependency install.
-They are the upgrade path if parallel work becomes necessary. Count that install cost first.
+Per-task worktrees are not used because each worktree needs its own dependency install.
 
 ## Starting a session
 
@@ -124,10 +104,9 @@ They are the upgrade path if parallel work becomes necessary. Count that install
   if an agent seems to run at the wrong level.
 - Subagents can invoke skills and spawn subagents, up to three layers deep.
 
-## Why not a difficulty classifier
+## Why route by kind of work
 
-Some setups label each task EASY, MEDIUM or HARD and pick a model from the label. This kit does
-not.
+Routing does not use a difficulty label such as EASY, MEDIUM or HARD.
 
 - Handing a tiny edit to a cheaper model costs more than doing it: the brief, the wait and the
   review of the result outweigh the saving.

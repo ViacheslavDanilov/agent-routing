@@ -5,7 +5,7 @@ directory. Read `ROUTING.md` first, then follow the steps below in order.
 
 Rules for the whole task:
 
-- Do not change the user's global settings (`~/.claude/`, `~/.codex/`). Read them, never write.
+- Do not change the user's global settings (`~/.claude/`). Read them, never write.
 - Do not edit the kit directory. Copy from it.
 - Write nothing in the project until step 7 is confirmed by the owner.
 - Never use an em dash in anything you write. Keep sentences short and plain.
@@ -23,19 +23,15 @@ Find and note:
 - Git conventions: branch rules, commit format, pull request format, and which step merges (after
   the review passes and CI is green). Do not assume the orchestrator merges.
 
-## 2. Check the tools
+## 2. Check the environment
 
-- Run `codex --version`. If it fails, Codex is missing: say so, and plan the Codex rows on the
-  Claude equivalent (see "If Codex is missing" in `ROUTING.md`).
-- If Codex is present, read `~/.codex/config.toml` for `model` and `model_reasoning_effort`. Use
-  the configured model in the command template. The kit assumes `gpt-6.1-sol` at `xhigh`.
 - Run `echo $CLAUDE_CODE_EFFORT_LEVEL`. If it is set, tell the owner it overrides agent effort.
 
 ## 3. Check the authorship rules
 
 Read the project's rules for commit messages and pull request text. Some projects forbid naming AI
 tools or models there. If so, every commit and pull request that sets up routing must describe it
-neutrally, for example "model tiers" and "a second vendor". The config files themselves keep the
+neutrally, for example "model tiers". The config files themselves keep the
 real model names. Keep the rule in mind for step 8 and for any commit you make.
 
 ## 4. Map the project's work onto the roles
@@ -45,7 +41,8 @@ For each row of the role table in `ROUTING.md`, name what it means here. Example
 - What work depends on taste in this project? Visual, copy, UX, API naming, docs prose? That is
   the crafter's work. If the project has none, drop the crafter row.
 - What work has a check that passes or fails? Tests, data migrations, scripts, accessibility,
-  performance? That is Codex's work.
+  performance? The orchestrator does it, and the check is the proof. Audits whose result is
+  measurable go to a read-only general-purpose agent.
 - What counts as a structural change? Data shape, routing, build or CI config, design tokens,
   public API? That goes to the planner.
 - Which review skill does the project use? If none, the reviewer agent follows the repository's
@@ -72,17 +69,15 @@ Draft in your head or in the scratchpad, not in the project:
   likes it (for example `site-runner`).
 - A routing section for the project's agent docs. Put it where the project keeps agent rules:
   `AGENTS.md` or its conventions file. Never create `CLAUDE.md` if the project uses `AGENTS.md`.
-  The section holds the adapted role table, the rules, the Codex command with the project's
-  worktree, and the "Brief and status" protocol. Link to nothing in the kit directory: the project
+  The section holds the adapted role table, the rules, and the "Brief and status" protocol. Link to nothing in the kit directory: the project
   copy must stand alone. The rules it carries:
-  - The review lenses (bug hunt, second opinion) run on every pass except a comment-only pass.
-    `/code-review` is the fallback only when Codex is missing or fails.
+  - The bug-hunt lens (`/code-review`) runs on every review pass except a comment-only pass.
   - The merge happens after the review passes and CI is green, done by the one step the project
     assigns. Name that step. Never write "the orchestrator merges" unless the project says so.
   - `BRIEF.md` and `STATUS.md` belong to one task. Both are written when the owner confirms the
     criteria. `BRIEF.md` is written once and never edited by a worker. `STATUS.md` is updated
     after every step. A new session on the same task reads both and continues.
-  - A read-only worker (planner, runner, read-only Codex) reports progress in its reply, and the
+  - A read-only worker (planner, runner, the read-only workers) reports progress in its reply, and the
     orchestrator records it in `STATUS.md`.
   - A worker in another worktree, such as the reviewer's, does not see the gitignored files. The
     caller passes both by absolute path.
@@ -102,7 +97,6 @@ Show the owner, in one message:
 2. The high-risk paths.
 3. The list of files you will create or change, with one line on each.
 4. What you could not map, and what you assumed.
-5. Whether Codex is present, and the model it will use.
 
 Then stop. Do not write a file until the owner confirms in plain words. If the owner changes a
 row, redraw the table and ask again.
@@ -126,5 +120,5 @@ After confirmation:
 
 Tell the owner, in under 150 words: the files created or changed, what the check printed, what
 you dropped or assumed, and one line on how to start: one task per session, and the orchestrator
-writes `BRIEF.md` and `STATUS.md` before it hands work to another model, and deletes both when the
+writes `BRIEF.md` and `STATUS.md` before it hands work to a worker, and deletes both when the
 task ends.

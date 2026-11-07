@@ -48,6 +48,5 @@
 
 - No push. No merge. No upgrade of any tool.
 - Do not edit <agent docs file>, and do not create a `CLAUDE.md`.
-- Codex does not commit. The orchestrator commits.
 - Read `STATUS.md` first. Update it after every step, unless you are read-only: then report
   progress in your reply and the orchestrator records it.

@@ -2,7 +2,7 @@
 
 <!-- Belongs to ONE task. Written when the owner confirms the criteria, updated after every step.
      Gitignored, never committed.
-     A worker with write access updates it. A read-only worker (planner, runner, read-only Codex)
+     A worker with write access updates it. A read-only worker (planner, runner, a read-only worker)
      reports progress in its reply, and the orchestrator records it here.
      Read BRIEF.md first. Never edit it.
      A new session on the same task, on any account, reads both files and continues from "Next".
@@ -11,7 +11,7 @@
      DELETE it, with BRIEF.md, when the task ends: PR merged, PR closed, or no PR. -->
 
 Last updated: <date, time>
-Worker: <Codex | Crafter | orchestrator | other>
+Worker: <Crafter | orchestrator | other>
 
 ## Done
 

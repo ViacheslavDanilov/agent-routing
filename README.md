@@ -1,6 +1,6 @@
 # Agent routing kit
 
-A small, project-agnostic template for routing work across Claude and Codex models. A Claude Code
+A small, project-agnostic template for routing work across Claude models. A Claude Code
 session in any project reads it and adapts it into that project's own `.claude/` setup.
 
 The kit gives you:
@@ -36,9 +36,9 @@ sequenceDiagram
     actor Owner
     participant Orch as Orchestrator<br/>main session<br/>Sonnet, high
     participant Plan as Planner<br/>Opus, xhigh<br/>read-only
-    participant Work as Worker<br/>Codex gpt-6.1-sol, xhigh (no taste)<br/>or Crafter Sonnet, xhigh (taste)
+    participant Craft as Crafter<br/>Sonnet, xhigh<br/>(taste work)
     participant Run as Runner<br/>Haiku, high<br/>read-only
-    participant Rev as Reviewer<br/>Opus, high (xhigh on risky paths)<br/>+ Codex lenses, xhigh
+    participant Rev as Reviewer<br/>Opus, high (xhigh on risky paths)
     participant Fix as Fix loop and QA<br/>Sonnet, high
 
     Owner->>Orch: task, decisions
@@ -50,17 +50,19 @@ sequenceDiagram
         Plan-->>Orch: plan, steps with checks, risks<br/>(read-only: Orch records STATUS.md)
     end
     Orch->>Orch: write BRIEF.md and STATUS.md (gitignored, one task)
-    rect rgba(120, 140, 200, 0.15)
-        Note over Orch,Work: Worker: reads BRIEF.md first, never edits it
-        Orch->>Work: delegate by kind of work
-        Work->>Work: commits, STATUS.md after every step
-        Work-->>Orch: report, questions
+    opt Taste work only (visual, copy, UX)
+        rect rgba(120, 140, 200, 0.15)
+            Note over Orch,Craft: Crafter: reads BRIEF.md first, never edits it
+            Orch->>Craft: delegate the work
+            Craft->>Craft: commits, STATUS.md after every step
+            Craft-->>Orch: report, questions
+        end
     end
     Orch->>Run: run check, build, tests
     Run-->>Orch: pass or fail, counts, first error lines<br/>(read-only: Orch records STATUS.md)
     Orch->>Orch: read diff, commit, open PR
     rect rgba(200, 140, 120, 0.15)
-        Note over Orch,Rev: Review in a context that did not write the code.<br/>Codex lenses run on every pass except comment-only.<br/>/code-review only if Codex is missing or fails.
+        Note over Orch,Rev: Review in a context that did not write the code.<br/>The bug-hunt lens (/code-review) runs on every pass except comment-only.
         Orch->>Rev: PR number, BRIEF.md and STATUS.md paths
         Rev-->>Orch: findings by severity
     end
@@ -74,33 +76,34 @@ sequenceDiagram
     Rev-->>Orch: verdict, merged or not
     Note over Orch: Final step: delete BRIEF.md and STATUS.md<br/>(PR merged, PR closed, or no PR)
     Orch->>Owner: summary, open questions
-    Note over Orch,Work: Quota out: another account reads<br/>BRIEF.md and STATUS.md and continues, no rewrite.
+    Note over Orch,Craft: Quota out: another account reads<br/>BRIEF.md and STATUS.md and continues, no rewrite.
 ```
 
-<img src="diagram/routing.svg" alt="Sequence diagram of the routing flow from owner to orchestrator, planner, worker, runner, reviewer, fix loop and merge" width="100%">
+<img src="diagram/routing.svg" alt="Sequence diagram of the routing flow from owner to orchestrator, planner, crafter, runner, reviewer, fix loop and merge" width="100%">
 
 ## Routing table
 
-| Work                                                                                      | Worker                                 | Model, effort      |
-| ----------------------------------------------------------------------------------------- | -------------------------------------- | ------------------ |
-| Dialog, criteria, brief, status, small edits, commits                                     | the main session (orchestrator)        | Sonnet, high       |
-| A plan for a structural change: data shape, routing, build or CI config, design tokens    | `planner` agent, read-only             | Opus, xhigh        |
-| Work that depends on taste: visual, copy, UX                                              | `crafter` agent                        | Sonnet, xhigh      |
-| Code with no taste in it: tests, data, scripts, accessibility, performance, an exact plan | Codex, `workspace-write`               | gpt-6.1-sol, xhigh |
-| Review, first pass or delta                                                               | `reviewer` agent                       | Opus, high         |
-| Review when the change touches a high-risk path                                           | `reviewer` agent, `effort: xhigh`      | Opus, xhigh        |
-| Review, trivial re-pass or comment-only pass                                              | general-purpose agent, `model: sonnet` | Sonnet, high       |
-| Fix loop and QA after review                                                              | general-purpose agent, `model: sonnet` | Sonnet, high       |
-| Review lenses (bug hunt, second opinion), every pass but comment-only; objective audits   | Codex, `read-only`                     | gpt-6.1-sol, xhigh |
-| Merge, once the review passes and CI is green                                             | the step the project assigns           | the step's own     |
-| Run check, build and test commands; search; count; summarise long output                  | `runner` agent, read-only              | Haiku, high        |
+| Work                                                                                      | Worker                                            | Model, effort  |
+| ----------------------------------------------------------------------------------------- | ------------------------------------------------- | -------------- |
+| Dialog, criteria, brief, status, small edits, commits                                     | the main session (orchestrator)                   | Sonnet, high   |
+| A plan for a structural change: data shape, routing, build or CI config, design tokens    | `planner` agent, read-only                        | Opus, xhigh    |
+| Work that depends on taste: visual, copy, UX                                              | `crafter` agent                                   | Sonnet, xhigh  |
+| Code with no taste in it: tests, data, scripts, accessibility, performance, an exact plan | the main session (orchestrator)                   | Sonnet, high   |
+| Review, first pass or delta                                                               | `reviewer` agent                                  | Opus, high     |
+| Review when the change touches a high-risk path                                           | `reviewer` agent, `effort: xhigh`                 | Opus, xhigh    |
+| Review, trivial re-pass or comment-only pass                                              | general-purpose agent, `model: sonnet`            | Sonnet, high   |
+| Fix loop and QA after review                                                              | general-purpose agent, `model: sonnet`            | Sonnet, high   |
+| Review lens: bug hunt (`/code-review`), every pass but comment-only                       | general-purpose agent, `model: sonnet`, read-only | Sonnet, xhigh  |
+| Objective audits: accessibility, performance, security scans                              | general-purpose agent, `model: sonnet`, read-only | Sonnet, high   |
+| Merge, once the review passes and CI is green                                             | the step the project assigns                      | the step's own |
+| Run check, build and test commands; search; count; summarise long output                  | `runner` agent, read-only                         | Haiku, high    |
 
 ## Files
 
 | Path                            | Purpose                                                        |
 | ------------------------------- | -------------------------------------------------------------- |
 | `ADOPT.md`                      | Steps for an agent adapting the kit to a project               |
-| `ROUTING.md`                    | Principles, role table, rules, Codex command, hand-off files   |
+| `ROUTING.md`                    | Principles, role table, rules, hand-off files                  |
 | `templates/settings.json`       | Project `model` and `effortLevel`                              |
 | `templates/BRIEF.md`            | Skeleton the orchestrator fills once per task, then deletes    |
 | `templates/STATUS.md`           | Skeleton updated after every step, then deleted with the brief |
