@@ -10,7 +10,7 @@ How work is split across Claude models. This file is generic. A project keeps it
   matters. There is no `low` or `medium`.
 - The main session is the orchestrator. It talks to the owner and owns the commits.
 - One task per session. A long session re-reads its whole context every turn, and that is the
-  biggest quota cost. Finish or hand off the task, then start a new session. See "Working model".
+  biggest quota cost. Finish or hand off the task, then start a new session.
 - The routing table is the instruction that sets the Agent tool's `model` and `effort`.
 
 ## Roles
@@ -25,7 +25,7 @@ How work is split across Claude models. This file is generic. A project keeps it
 | Review when the change touches a high-risk path                                           | `reviewer` agent, `effort: xhigh`                 | Opus, xhigh    | A miss on a risky path is expensive                    |
 | Review, trivial re-pass or comment-only pass                                              | general-purpose agent, `model: sonnet`            | Sonnet, high   | Little to find, so the cheaper model is enough         |
 | Fix loop and QA after review                                                              | general-purpose agent, `model: sonnet`            | Sonnet, high   | Follows concrete findings                              |
-| Review lens: bug hunt (`/code-review`), on every pass except comment-only                 | general-purpose agent, `model: sonnet`, read-only | Sonnet, xhigh  | A missed bug costs more than the lens                  |
+| Review lens: bug hunt (`/code-review`), every pass but comment-only, not only risky ones  | general-purpose agent, `model: sonnet`, read-only | Sonnet, xhigh  | A missed bug costs more than the lens                  |
 | Merge, once the review passes and CI is green                                             | the step the project assigns (below)              | the step's own | Who merges is project-specific                         |
 | Objective audits: accessibility, performance, security scans                              | general-purpose agent, `model: sonnet`, read-only | Sonnet, high   | The result is measurable                               |
 | Run check, build and test commands; search; count; summarise long output                  | `runner` agent, read-only                         | Haiku, high    | Cheap, and keeps long output out of the session        |
@@ -35,9 +35,6 @@ The owner can override any row: `/model opus` in a session, or a word in chat.
 Who merges is project-specific. The merge happens after the review passes and CI is green, and
 the project assigns it to one step. In the worked example the review step merges, never the
 orchestrator's own session. Write the project's choice into its copy of this table.
-
-The bug-hunt lens runs on every review pass except a comment-only pass, not only on high-risk
-changes.
 
 ## Rules
 
@@ -82,12 +79,8 @@ Lifecycle:
 ## Working model
 
 One session, one task, one working copy. There are no parallel tasks in the same folder and no
-per-task worktrees. If `BRIEF.md` for another unfinished task is present, finish or close that
-task first.
-
-Per-task worktrees are not used because each worktree needs its own dependency install.
-
-## Starting a session
+per-task worktrees, because each worktree needs its own dependency install. If `BRIEF.md` for
+another unfinished task is present, finish or close that task first.
 
 - Task sessions start on Sonnet at `high`. The project `settings.json` sets that.
 - A process or architecture discussion starts on Opus, chosen explicitly, and stays short.
