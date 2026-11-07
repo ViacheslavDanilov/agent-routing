@@ -13,8 +13,8 @@ scripts/apply-github-standard.sh OWNER/REPO             # apply
 
 The script reads the required checks from the repository's current protection. For a new
 repository with none yet, pass each CI job name with `--check "Job name"`. Before it changes
-anything, it saves the current settings to `backups/<repo>-<timestamp>/` (gitignored), so a
-setting can be restored by hand.
+anything, it saves the current settings to `backups/<repo>-<timestamp>/` (gitignored scratch
+output), so a setting can be restored by hand.
 
 ## Merging
 
@@ -84,11 +84,3 @@ itself, such as `bib` or `fig`, stay as they are.
 
 Secret scanning and push protection are on wherever GitHub offers them. GitHub does not offer
 them for a private repository on a personal account, and the script skips them there.
-
-## Applied
-
-| Repository                            | Date       | Notes                                    |
-| ------------------------------------- | ---------- | ---------------------------------------- |
-| `ViacheslavDanilov/vdanilov`          | 2026-10-30 | added `E2E Tests` to the required checks |
-| `ViacheslavDanilov/video-bokeh`       | 2026-10-30 | replaced a disabled ruleset              |
-| `ViacheslavDanilov/video-bokeh-paper` | 2026-10-30 | private: no secret scanning              |

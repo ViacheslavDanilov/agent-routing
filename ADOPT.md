@@ -25,14 +25,13 @@ Find and note:
 
 ## 2. Check the environment
 
-- Run `echo $CLAUDE_CODE_EFFORT_LEVEL`. If it is set, tell the owner it overrides agent effort.
+Run `echo $CLAUDE_CODE_EFFORT_LEVEL`. If it is set, tell the owner it overrides agent effort.
 
 ## 3. Check the authorship rules
 
 Read the project's rules for commit messages and pull request text. Some projects forbid naming AI
 tools or models there. If so, every commit and pull request that sets up routing must describe it
-neutrally, for example "model tiers". The config files themselves keep the
-real model names. Keep the rule in mind for step 8 and for any commit you make.
+neutrally, for example "model tiers". The config files themselves keep the real model names. Keep the rule in mind for step 8 and for any commit you make.
 
 ## 4. Map the project's work onto the roles
 
@@ -69,15 +68,15 @@ Draft in your head or in the scratchpad, not in the project:
   likes it (for example `site-runner`).
 - A routing section for the project's agent docs. Put it where the project keeps agent rules:
   `AGENTS.md` or its conventions file. Never create `CLAUDE.md` if the project uses `AGENTS.md`.
-  The section holds the adapted role table, the rules, and the "Brief and status" protocol. Link to nothing in the kit directory: the project
-  copy must stand alone. The rules it carries:
+  The section holds the adapted role table, the rules, and the "Brief and status" protocol. Link
+  to nothing in the kit directory: the project copy must stand alone. The rules it carries:
   - The bug-hunt lens (`/code-review`) runs on every review pass except a comment-only pass.
   - The merge happens after the review passes and CI is green, done by the one step the project
     assigns. Name that step. Never write "the orchestrator merges" unless the project says so.
   - `BRIEF.md` and `STATUS.md` belong to one task. Both are written when the owner confirms the
     criteria. `BRIEF.md` is written once and never edited by a worker. `STATUS.md` is updated
     after every step. A new session on the same task reads both and continues.
-  - A read-only worker (planner, runner, the read-only workers) reports progress in its reply, and the
+  - A read-only worker (planner, runner, read-only audits) reports progress in its reply, and the
     orchestrator records it in `STATUS.md`.
   - A worker in another worktree, such as the reviewer's, does not see the gitignored files. The
     caller passes both by absolute path.
