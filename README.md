@@ -79,8 +79,6 @@ sequenceDiagram
     Note over Orch,Craft: Quota out: another account reads<br/>BRIEF.md and STATUS.md and continues, no rewrite.
 ```
 
-<img src="diagram/routing.svg" alt="Sequence diagram of the routing flow from owner to orchestrator, planner, crafter, runner, reviewer, fix loop and merge" width="100%">
-
 ## Routing table
 
 | Work                                                                                      | Worker                                            | Model, effort  |
@@ -108,7 +106,6 @@ sequenceDiagram
 | `templates/BRIEF.md`            | Skeleton the orchestrator fills once per task, then deletes    |
 | `templates/STATUS.md`           | Skeleton updated after every step, then deleted with the brief |
 | `templates/agents/*.md`         | Planner, crafter, reviewer and runner with placeholders        |
-| `diagram/routing.{mmd,svg,png}` | The flow diagram, source and renders                           |
 
 ## Worked example
 
