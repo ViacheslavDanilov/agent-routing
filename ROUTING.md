@@ -65,16 +65,15 @@ A project may add one worker from a second model family: Gemini, through the Ant
 - Run it headless with stdin closed (`< /dev/null`), a time limit, and the report written
   outside the working tree. Check the report's content, not only the exit code: some CLIs exit
   0 when a denied call ended the run.
-- Read-only rests on two layers: the CLI's headless mode denies its own file writes and every
-  command off a short allowlist, and its sandbox keeps commands from writing into the working
-  tree. An allowlisted read command may still write elsewhere (`git log --output=<file>`), so
-  the prompt forbids that too.
+- Give it no shell. Its headless mode then denies every file write and every command, which is
+  what keeps it read-only, and its sandbox is a second layer. An allowlist of read commands buys
+  little: an allowed `git log` can still write with `--output=<file>`, and under the sandbox in
+  a linked worktree it cannot even reach the repository's `.git`. Git history is a lens for
+  Claude.
 - Hand it everything as files in a folder it is given: the diff, the spec. A headless run cannot
   ask to read anything outside its folders, and one denied call loses the whole run.
-- The Antigravity CLI loads `.agents/skills/` on its own and may follow a skill into denied
-  commands. The prompt tells it not to use them.
-- It runs its shell in the first of its folders by name, not in the one it starts from. Name
-  the extra folders so the working tree sorts first.
+- The Antigravity CLI loads `.agents/skills/` on its own and may follow a skill into commands.
+  The prompt tells it not to use them.
 - Run both lenses in one call: two calls cost twice the quota.
 - Its quota is usually the scarce one. Log the usage each call reports, and measure what one
   review costs before the lens runs on every pass.
