@@ -18,8 +18,11 @@ Find and note:
 - The commands to check (lint, format), build and test. Run each once if it is cheap, and note
   what a pass looks like (exit code, counts).
 - CI: where it is defined, and which commands it runs.
-- Existing agent docs: `AGENTS.md`, `CLAUDE.md`, a conventions file, `.claude/skills/`,
-  `.claude/agents/`, `.claude/settings.json`. Note what already exists. Do not duplicate it.
+- Existing agent docs: `AGENTS.md`, `CLAUDE.md`, a conventions file, `.agents/skills/`,
+  `.claude/skills/`, `.claude/agents/`, `.claude/settings.json`. Note what already exists. Do
+  not duplicate it.
+- Whether the owner uses the Antigravity CLI (`agy`). A second model family is optional; see
+  "Optional: a second model family" in `ROUTING.md`.
 - Git conventions: branch rules, commit format, pull request format, and which step merges (after
   the review passes and CI is green). Do not assume the orchestrator merges.
 
@@ -86,6 +89,8 @@ Draft in your head or in the scratchpad, not in the project:
     present, finish or close that task first.
   - Task sessions start on Sonnet at `high`. Process or architecture talks start on Opus and stay
     short. Implementation after them goes to a new Sonnet session.
+- Skills in `.agents/skills/`, with `.claude/skills` a symlink to them, as "Where skills
+  live" in `ROUTING.md` says. Move existing skills with `git mv` so their history stays.
 - `.gitignore` entries: `BRIEF.md` and `STATUS.md`. Do not duplicate existing lines.
 
 ## 7. Ask the owner, then wait

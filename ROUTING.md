@@ -50,6 +50,35 @@ orchestrator's own session. Write the project's choice into its copy of this tab
 - **Hand-off files.** A worker cannot see the orchestrator's conversation, and a quota limit or
   an account switch can end a session. See "Brief and status" below.
 
+## Optional: a second model family
+
+A project may add one worker from a second model family: Gemini, through the Antigravity CLI
+(`agy`), when the owner has a plan for it. Keep it narrow:
+
+- Give it read-only review lenses only: the bug hunt and a second opinion from a different
+  model. Code stays with Claude, so the orchestrator owns every diff and commit.
+- It never decides how something looks or reads, never edits files and never commits.
+- Name its model in every call. The CLI's own default may sit on a different quota.
+- Prove that it is read-only before writing the rule: ask it to write a file in a scratch
+  folder, and check that nothing appears. Rely on the CLI's own permission denial, not on a
+  prompt that asks it to behave.
+- Run it headless with stdin closed (`< /dev/null`), a time limit, and the report written
+  outside the working tree. Check the report's content, not only the exit code: some CLIs exit
+  0 when a denied call ended the run.
+- Its quota is usually the scarce one. Log the usage each call reports, and measure what one
+  review costs before the lens runs on every pass.
+- When the CLI is missing, fails or is out of quota, say so: the bug hunt falls back to
+  `/code-review`, and the second opinion is recorded as not run, never quietly redone by
+  another model.
+
+## Where skills live
+
+Keep the project's skills in `.agents/skills/<name>/SKILL.md`, the folder the Antigravity CLI
+reads, and make `.claude/skills` a symlink to `../.agents/skills` for Claude Code. Agents stay
+per tool: `.claude/agents/` holds Claude Code's, in its own format. If `.gitignore` excludes
+`.claude/*`, re-include the link as `!.claude/skills`, without a trailing slash, since a
+pattern with a slash matches only directories.
+
 ## Brief and status
 
 When work goes to a worker, or may outlive the session, two files sit at the root of the working
