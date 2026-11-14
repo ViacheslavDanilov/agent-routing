@@ -85,7 +85,7 @@ sequenceDiagram
 | Path                               | Purpose                                                           |
 | ---------------------------------- | ----------------------------------------------------------------- |
 | `ADOPT.md`                         | Steps for an agent adapting the kit to a project                  |
-| `ROUTING.md`                       | Principles, role table, rules, hand-off files                     |
+| `ROUTING.md`                       | Principles, role table, rules, hand-off files, task cleanup       |
 | `templates/settings.json`          | Project `model` and `effortLevel`                                 |
 | `templates/BRIEF.md`               | Skeleton the orchestrator fills once per task, then deletes       |
 | `templates/STATUS.md`              | Skeleton updated after every step, then deleted with the brief    |

@@ -112,14 +112,57 @@ Lifecycle:
    It does not rewrite them.
 5. A worker in a different worktree, such as the reviewer's own, does not see these gitignored
    files. The caller passes both by absolute path.
-6. **Final step: delete both files** when the task ends: the pull request merged, the pull request
-   closed, or the task ended without one. The next session then never picks up a finished task.
+6. **Final step: delete both files** when the task ends, as part of "Task cleanup" below. The next
+   session then never picks up a finished task.
+
+## Task cleanup
+
+A task ends when its pull request is merged or closed, or when it had no pull request. Then remove
+what the task generated and git does not track on purpose.
+
+**Inside the pull request.** Remove the code, text, prompts and files that this change made
+obsolete, so the review sees the removal. Remove only what this change made unused, and mention
+unrelated dead code instead of deleting it. Never treat research data, provenance, source files or
+anything needed to reproduce a result as obsolete. Do not commit scratch output, debug files, logs
+or generated artifacts that the repository does not track by rule.
+
+**After the merge, local state only.** Do it after the last review and merge, not before: review
+material is needed while the owner is still deciding. Work from the main checkout, not from inside
+a worktree you are about to remove.
+
+1. Switch the main checkout to the updated default branch: `git switch <default>` then
+   `git pull --ff-only`. Run `git fetch --prune`.
+2. Stop the dev servers and background jobs this task started, with the process group, after you
+   confirm the PID is yours. Do this before removing the folders they run in.
+3. Remove the worktrees this task created: `git worktree remove <path>`. If it refuses because
+   of untracked files, look at them and delete the ones that are scratch. Do not use `--force`
+   on something you have not looked at.
+4. Delete the local branches this task created: `git branch -d <branch>`. A squash merge leaves a
+   branch unmerged in git's eyes, so `-d` can refuse. Then check that the pull request is merged
+   and that the local tip equals its head:
+   `gh pr view <n> --json state,headRefOid`, `git rev-parse <branch>`. Only when both match, use
+   `git branch -D <branch>`. A local commit past that head is unpushed work: keep the branch and
+   tell the owner.
+5. Delete the temporary files this task wrote: the session scratchpad, `/tmp`, stray files in the
+   home or project folder, and `BRIEF.md` and `STATUS.md` when they are untracked. Drop stash
+   entries this task made. Look at a path before you delete it, and use exact paths.
+6. Check that `git status --short`, `git worktree list` and `git branch` show nothing from the
+   task, then tell the owner what you removed, what you kept and why.
+
+**A pull request closed without a merge, or no pull request.** Closing is not permission to
+discard work. Remove the scratch files and processes, and ask the owner before you delete a branch
+or a worktree that holds commits.
+
+**Limits.** Touch only what this task created: another session's worktree, branch, scratchpad,
+port, stash or uncommitted change stays. When you are not sure something is yours, list it for
+the owner and do not delete it. Keep whatever a repository rule says to keep.
 
 ## Working model
 
 One session, one task, one working copy. There are no parallel tasks in the same folder and no
 per-task worktrees, because each worktree needs its own dependency install. If `BRIEF.md` for
-another unfinished task is present, finish or close that task first.
+another unfinished task is present, finish or close that task first. A worktree that a task does
+create anyway, such as a reviewer's, is removed by "Task cleanup" above.
 
 - Task sessions start on Sonnet at `high`. The project `settings.json` sets that.
 - A process or architecture discussion starts on Opus, chosen explicitly, and stays short.

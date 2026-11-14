@@ -85,6 +85,11 @@ Draft in your head or in the scratchpad, not in the project:
     caller passes both by absolute path.
   - Final step: delete `BRIEF.md` and `STATUS.md` when the task ends (pull request merged or
     closed, or no pull request), so the next session never picks up a finished task.
+  - Task cleanup: when the task ends, remove what it generated and git does not track on purpose:
+    worktrees and local branches the task created, dev servers it started, scratch files. Copy
+    the "Task cleanup" section of `ROUTING.md` into the project's docs, and add a short "Also
+    clean here" list of the real paths this project generates (build output, caches, a local
+    database, generated assets). List only paths that exist. Do not invent any.
   - One session, one task, one working copy. If `BRIEF.md` for another unfinished task is
     present, finish or close that task first.
   - Task sessions start on Sonnet at `high`. Process or architecture talks start on Opus and stay
@@ -113,10 +118,12 @@ After confirmation:
 2. Run the project's check command. It must pass.
 3. Check that agent frontmatter is valid: `name`, `description`, `model`, `effort`, and
    `disallowedTools` where the template has it.
-4. Check there is no em dash in what you wrote: `grep -rnP "\x{2014}" .claude <agent docs file>`.
-5. Check `git status` shows `BRIEF.md` and `STATUS.md` ignored, and nothing outside the planned
+4. Check that the routing section has a "Task cleanup" part and an "Also clean here" list with
+   paths that exist in the project.
+5. Check there is no em dash in what you wrote: `grep -rnP "\x{2014}" .claude <agent docs file>`.
+6. Check `git status` shows `BRIEF.md` and `STATUS.md` ignored, and nothing outside the planned
    list changed.
-6. Do not commit unless the project's rules and the owner say so. Follow the project's own
+7. Do not commit unless the project's rules and the owner say so. Follow the project's own
    commit and branch rules if you do, and the authorship rule from step 3: neutral wording, no AI
    tool or model vendor named in a commit message or pull request text.
 
